@@ -4,7 +4,10 @@
 #include <eigen3/Eigen/Core>
 #include <eigen3/Eigen/Geometry>
 #include <boost/format.hpp>
-#include <capnp/dynamic.h> // only for error messaging purpose
+
+#ifndef NO_CAPNP_REFLECTION
+ #include <capnp/dynamic.h> // only for error messaging purpose
+#endif
 
 #include <iostream>
 
@@ -42,12 +45,15 @@ Eigen::AlignedBoxXd AdvFunc::rectHull(SetExpr::Reader set)
   //case SetExpr::LIST_OPERATION:
   //  return membership(set.getListOperation(), point);
   default:
+    
+    boost::format msg;
+
+    #ifndef NO_CAPNP_REFLECTION
     // membership operation is not defined for the provided set: we'll throw an
     // exception
 
     // try to format an error msg containing a human-readable name of the type
     // via Cap'n Proto's Dynamic API
-    boost::format msg;
     capnp::DynamicStruct::Reader tmp = set;
     KJ_IF_MAYBE(field_ptr, tmp.which()) {
       auto fieldname = field_ptr->getProto().getName().cStr();
@@ -56,8 +62,11 @@ Eigen::AlignedBoxXd AdvFunc::rectHull(SetExpr::Reader set)
               "AdvFunc::rectangularHull [.which()=%1%,%2%]") %
           int(type) % fieldname;
     }
-    else {
-      // unable to retrieve the human-readable name for type, we'll just throw
+    else
+    #endif 
+
+    { 
+    // unable to retrieve the human-readable name for type, we'll just throw
       // the exception without this name
       msg = boost::format(
                 "AdvFunc::rectangularHull [.which()=%1%]") %

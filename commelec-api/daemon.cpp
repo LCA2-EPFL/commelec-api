@@ -16,8 +16,12 @@
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 
-#include <spdlog/spdlog.h>
-// logging framework
+
+#ifndef _WIN32
+// spdlog is not supported on windows due to the
+// lack of standard threading support in mingw64
+#include <spdlog/spdlog.h> // logging framework
+#endif
 
 #include <boost/asio/io_service.hpp>
 #include <boost/asio/ip/udp.hpp>
@@ -208,9 +212,11 @@ public:
         _network_socket(io_service,
                         udp::endpoint(udp::v4(), network_listen_port)),
         _outgoing_req_endpoints(req_endpoints),
-        _outgoing_adv_endpoints(adv_endpoints), _timer(io_service),
+        _outgoing_adv_endpoints(adv_endpoints), _timer(io_service)
+#ifndef _WIN32
+	,
         logger(spdlog::stdout_logger_mt("console"))
-
+#endif
   {
     //boost::asio::spawn
     spawn_coroutine(_strand,
@@ -219,9 +225,11 @@ public:
     spawn_coroutine(_strand,
                 [this](boost::asio::yield_context yield) { listenRAside(yield); });
 
+#ifndef _WIN32
     logger->set_level(spdlog::level::debug);
     SPDLOG_DEBUG(logger, "Started coroutines");
     // run listeners as coroutines
+#endif
   }
 
 private:
@@ -254,7 +262,9 @@ private:
         auto req = msg.getRequest();
         // parse Capnp
 
+#ifndef _WIN32
         SPDLOG_DEBUG(logger, "Request received from GA");
+#endif
 
         Document d;
         d.SetObject();
@@ -303,7 +313,9 @@ private:
       size_t bytes_received = _local_socket.async_receive_from(asio_buffer, sender_endpoint, yield);
       // wait for incoming packet
 
+#ifndef _WIN32
       SPDLOG_DEBUG(logger, "Packet received from RA, bytes: {}", bytes_received);
+#endif
 
       auto read_buffer = boost::asio::buffer(_local_data, bytes_received);
       if (_resourceType == Resource::custom) {
@@ -407,7 +419,9 @@ private:
   capnp::byte _network_data[networkBufLen];
   // persistent arrays for storing incoming udp packets
 
+#ifndef _WIN32
   std::shared_ptr<spdlog::logger> logger;
+#endif
 };
 
 udp::endpoint make_endpoint(std::string ip, int portnum) {
@@ -618,4 +632,5 @@ int main(int argc, char *argv[]) {
 #endif
 
 }
+
 

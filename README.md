@@ -18,6 +18,7 @@ Although our primary use case is the Commelec control framework, the convenience
 * [Explanation of the (capnproto) schema of our message format](docs/schema.md)
 * [Low-level API usage examples](docs/llapi.md)
 * [ARM (CompactRIO) cross-compile instructions](docs/cross.md)
+* [32-bit Windows (x86) cross-compile instructions](docs/cross_win32.md)
 
 ## Message format specification and API for the Commelec Smart-Grid-control platform.
 

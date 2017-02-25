@@ -20,6 +20,11 @@ elseif(LINUX)
   set (EXTRA_LIBS ${EXTRA_LIBS} pthread)
 endif()
 
+# Added to x-compile for 32-bit windows on 64-bit linux using mxe x-compiler toolchain
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(CMAKE_CXX_FLAGS "-std=c++11 -DNO_CAPNP_REFLECTION=1 -D_WIN32_WINNT=0x600 -Wno-deprecated-declarations")
+endif()
+
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 #set(CMAKE_CXX_FLAGS "-std=c++11 -DASIO_STANDALONE ${ADDITIONAL_CXX_FLAGS}") 
 
@@ -38,6 +43,13 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 find_package(CapnProto 0.5 REQUIRED)
 include_directories(${CAPNP_INCLUDE_DIRS})
 add_definitions(${CAPNP_DEFINITIONS})
+# Only light version of capnp can be built on windows
+# So instead of changing the macro in subdirectories, 
+# we replaced it by light version here
+if(CMAKE_SYSTEM_NAME STREQUAL Windows)
+  set(CAPNP_LIBRARIES "${CAPNP_LIBRARIES_LITE}")
+endif()
+
 
 #set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost COMPONENTS system filesystem coroutine context REQUIRED)
@@ -59,6 +71,10 @@ set_source_files_properties(${CAPNP_SRCS} PROPERTIES GENERATED TRUE)
 
 add_subdirectory(externals/seidel_lp)
 add_subdirectory(commelec-interpreter)
+
+# To x-compile 'commelecd' for 32-bit windows, 
+# we do not need to build the below targets
+if(LINUX OR MACOSX)
 add_subdirectory(utils)
 
 # Testing
@@ -77,3 +93,4 @@ WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 COMMENT "Generating API documentation with Doxygen" VERBATIM
 )
 endif(DOXYGEN_FOUND)
+endif()

@@ -12,9 +12,15 @@ endif()
 set_source_files_properties(${CAPNP_SRCS} PROPERTIES GENERATED TRUE)
 set(CAPNPC_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 capnp_generate_cpp(CAPNP_SRCS CAPNP_HDRS schema.capnp)
+
+# To x-compile 'commelecd' for 32-bit windows on linux, 
+# we don't need the shared hlapi library
+if (CMAKE_SYSTEM_NAME STREQUAL Linux OR CMAKE_SYSTEM_NAME STREQUAL Darwin)
 add_library(hlapi SHARED ${hlapi_sources} ${CAPNP_SRCS})
-add_library(hlapi_static ${hlapi_sources} ${CAPNP_SRCS})
 target_link_libraries(hlapi ${CAPNP_LIBRARIES_LITE} ${EXTRA_LIBS} ${Boost_LIBRARIES})
+endif()
+
+add_library(hlapi_static ${hlapi_sources} ${CAPNP_SRCS})
 target_link_libraries(hlapi_static ${CAPNP_LIBRARIES_LITE} ${EXTRA_LIBS} ${Boost_LIBRARIES})
 
 add_executable(commelecd daemon.cpp json.cpp)

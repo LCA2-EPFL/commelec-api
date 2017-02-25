@@ -1,7 +1,10 @@
 #include <commelec-interpreter/adv-interpreter.hpp>
 #include <cmath>
 #include <boost/format.hpp>
-
+// In case of windows, M_LOG10E is not defined
+#ifndef M_LOG10E
+#define M_LOG10E   0.434294481903251827651
+#endif
 using namespace msg;
 
 double AdvFunc::evaluate(RealExpr::Reader expr, const ValueMap &bound_vars) {
