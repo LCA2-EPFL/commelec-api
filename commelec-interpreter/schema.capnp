@@ -1,6 +1,7 @@
 # The MIT License (MIT)
 # 
-# Copyright (c) 2015 Andrey Bernstein and Niek J. Bouman
+# Copyright (c) 2015 École Polytechnique Fédérale de Lausanne (EPFL)
+# Authors: Andrey Bernstein and Niek J. Bouman
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +30,8 @@ $Cxx.namespace("msg");
 # Specified in Cap'n Proto's schema language (Requires Cap'n Proto v0.5
 #   [ http://kentonv.github.io/capnproto/language.html ] 
 #
-# Copyright (c) 2015 by Andrey Bernstein & Niek J. Bouman
-#
-# EPFL - Swiss Federal Institute of Technology Lausanne
+# Copyright (c) 2015 École Polytechnique Fédérale de Lausanne (EPFL)
+# Authors:  Andrey Bernstein & Niek J. Bouman
 
 #=====================================================
 # Top-Level "Message" Type, Request and Advertisement 
