@@ -1,7 +1,6 @@
 ## Cross compilation of commelecd daemon for 32-bit Windows on x86 machines
 
-The steps below are tested on 64-bit Ubuntu 16.04 LTS 
-but should work on other linux machines too.
+The steps below are tested on 64-bit Ubuntu 16.04 LTS (recommended).
 
 Cross compiling the commelecd daemon for 32-bit Windows consists of a number of steps
 * Building mxe 
@@ -22,7 +21,7 @@ apt-get install \
     git g++ gperf intltool libffi-dev libgdk-pixbuf2.0-dev \
     libtool libltdl-dev libssl-dev libxml-parser-perl make \
     openssl p7zip-full patch perl pkg-config python ruby scons \
-    sed unzip wget xz-utils
+    sed unzip wget xz-utils curl
 apt-get install g++-multilib libc6-dev-i386
 apt-get install libtool-bin
 ```
@@ -72,15 +71,14 @@ sudo make install
 Once you've the capnproto installed on your system, you can go ahead cross-compiling it for windows. Please keep in mind that you must have the same version of capnproto installed on your system that you're cross-compiling.
 Following commands will cross-compile capnproto for 32-bit windows and install it in mxe toolchain:
 ```
-curl -O https://capnproto.org/capnproto-c++-0.5.3.tar.gz
-tar zxf capnproto-c++-0.5.3.tar.gz
 cd capnproto-c++-0.5.3
+make clean
 ./configure --with-external-capnp --host=i686-w64-mingw32.static --enable-static --disable-shared --disable-reflection --prefix=/where mxe is installed/usr/i686-w64-mingw32.static
 make -j6 check
 sudo make install
 ```
 It is important to note that we only cross-compile **light** version of capnproto for windows. This is done using --disable-reflection in configure options. 
-
+Also, the second 'make -j6 check' returns an error of not being able to execute an .exe, and that's okay. You can safely 'make install' afterwards.
 
 ## Cross-Building the commelecd daemon
 

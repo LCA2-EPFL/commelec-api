@@ -81,7 +81,7 @@ sudo make install
 ## Cloning the repository including the submodules
 To properly clone the Git repository including the submodules, issue
 ```
-git clone --recursive https://github.com/niekbouman/commelec-api.git
+git clone --recursive https://github.com/LCA2-EPFL/commelec-api.git
 ```
 If you have already cloned the repository without the `--recursive` flag, 
 then you should cd into the directory, and initialize and update the submodules manually, i.e.,
