@@ -209,6 +209,7 @@ public:
       : _debug(debug), _agentId(agentId), _resourceType(resourceType), _strand(io_service),
         _local_socket(io_service,
                       udp::endpoint(udp::v4(), localhost_listen_port)),
+	_local_sending_socket(io_service, udp::v4()),
         _network_socket(io_service,
                         udp::endpoint(udp::v4(), network_listen_port)),
         _outgoing_req_endpoints(req_endpoints),
@@ -236,6 +237,7 @@ private:
   void listenGAside(boost::asio::yield_context yield) {
     // listen on the 'network side' for Cap'n Proto-encoded requests sent by a
     // GA
+    // std::cout << "In listenGAside()..." << std::endl;
 
     using namespace rapidjson;
     for (;;) { // run endlessly
@@ -246,6 +248,8 @@ private:
           asio_buffer, sender_endpoint, yield);
       // wait for incoming packet
 
+      // std::cout << "Request received from GA" << std::endl;
+
       if (_resourceType == Resource::custom) {
 
         // forward payload to client(s)
@@ -255,7 +259,9 @@ private:
 
       } else {
 
-        CapnpReader reader(asio_buffer);
+	// std::cout << "Received GA request is not for custom resource agents" << std::endl;
+        
+	CapnpReader reader(asio_buffer);
         msg::Message::Reader msg = reader.getMessage();
         if (!msg.hasRequest())
           throw;
@@ -294,15 +300,19 @@ private:
         d.Accept(writer);
         std::string payload = buffer.GetString();
 
+	// std::cout << "Payload of message sent to RA as a result of GA requst: " << payload << std::endl;
+
         for(const auto& ep : _outgoing_req_endpoints)
-          _local_socket.async_send_to(boost::asio::buffer(payload), ep, yield);
+	   _local_sending_socket.async_send_to(boost::asio::buffer(payload), ep, yield);
         // flatten to string and send packet(s)
+
+	// std::cout << "Payload is sent to RA synchronously!" << std::endl;
       }
     }
   }
   void listenRAside(boost::asio::yield_context yield) {
     // listen for JSON-encoded advertisement-parameters from the RA
-
+    // std::cout << "In listenRAside()..." << std::endl;
     using namespace rapidjson;
         Document d;
 
@@ -313,6 +323,7 @@ private:
       size_t bytes_received = _local_socket.async_receive_from(asio_buffer, sender_endpoint, yield);
       // wait for incoming packet
 
+      // std::cout << "Packet received from RA" << std::endl;
 #ifndef _WIN32
       SPDLOG_DEBUG(logger, "Packet received from RA, bytes: {}", bytes_received);
 #endif
@@ -336,12 +347,14 @@ private:
 
       } else {
 
+	// std::cout << "Before checking the message received from RA" << std::endl;
         _local_data[bytes_received] = 0; // terminate data as C-string
         d.Parse(reinterpret_cast<const char *>(_local_data));
 
         if (!d.IsObject())
           throw std::runtime_error("JSON object invalid");
 
+	// std::cout << "After checking the message received from RA" << std::endl;
         // parse JSON
 
         capnp::MallocMessageBuilder builder;
@@ -387,9 +400,12 @@ private:
           break;
         }
 
-        serializeAndAsyncSend(builder, _network_socket,
+	// std::cout << "After making the advertisement for GA" << std::endl;
+
+        serializeAndAsyncSend(builder, _local_sending_socket,
                               _outgoing_adv_endpoints, yield, _debug);
         // send packet(s)
+	// std::cout << "The advertisement is sent to GA!" << std::endl;
       }
     }
   }
@@ -405,6 +421,7 @@ private:
 
   boost::asio::io_service::strand _strand;
   boost::asio::ip::udp::socket _local_socket;
+  boost::asio::ip::udp::socket _local_sending_socket;
   boost::asio::ip::udp::socket _network_socket;
 
   //boost::asio::ip::udp::endpoint _local_dest_endpoint;
